@@ -53,9 +53,12 @@ public class User {
 
     public static Function<ResultSet, User> resultSetMapper = resultSet -> {
         try {
-            return new User(resultSet.getString("name"), resultSet.getString("pswhash"), resultSet.getBoolean("isOnline"));
+            return new User(
+                    resultSet.getString("name"),
+                    resultSet.getString("pswhash"),
+                    resultSet.getBoolean("isOnline"));
         } catch (Exception e) {
-            Logger.getLogger("Anasha").log(Level.WARNING, e.getMessage(), e);
+            Logger.getLogger("Logger").log(Level.WARNING, e.getMessage(), e);
             return null;
         }
     };

@@ -19,6 +19,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-database-postgresql:10.10.0")
     implementation ("com.typesafe:config:1.4.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
     implementation("at.favre.lib:bcrypt:0.10.2")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

@@ -5,7 +5,7 @@ import net.protsenko.model.User;
 
 public class AuthManager {
 
-    private DBQueryExecutor dbQueryExecutor;
+    private final DBQueryExecutor dbQueryExecutor;
 
     public AuthManager(DBQueryExecutor dbQueryExecutor) {
         this.dbQueryExecutor = dbQueryExecutor;
@@ -15,9 +15,7 @@ public class AuthManager {
         User user = null;
 
         try {
-            User dbUser = dbQueryExecutor.getUser(name);
-
-            user = dbUser;
+            user = dbQueryExecutor.getUser(name);
         } catch (Exception e) {
             return false;
         }
