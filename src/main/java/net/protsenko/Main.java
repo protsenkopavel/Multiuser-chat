@@ -5,14 +5,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import net.protsenko.model.EventType;
 import net.protsenko.model.Request;
+import net.protsenko.service.AuthManager;
+import net.protsenko.service.DBQueryExecutor;
+import net.protsenko.service.SocketService;
 import org.flywaydb.core.Flyway;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class Main {
     public static void main(String[] args) throws IOException {

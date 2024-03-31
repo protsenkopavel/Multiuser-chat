@@ -1,4 +1,4 @@
-package net.protsenko;
+package net.protsenko.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.protsenko.model.User;

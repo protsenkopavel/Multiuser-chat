@@ -1,4 +1,4 @@
-package net.protsenko;
+package net.protsenko.service;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

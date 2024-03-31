@@ -1,4 +1,6 @@
-package net.protsenko;
+package net.protsenko.service;
+
+import net.protsenko.SocketChannelListener;
 
 import java.io.IOException;
 import java.net.ServerSocket;
