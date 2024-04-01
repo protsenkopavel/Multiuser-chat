@@ -1,5 +1,9 @@
 package net.protsenko.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Response {
 
     Status status;
@@ -25,5 +29,13 @@ public class Response {
 
     public void setData(String data) {
         this.data = data;
+    }
+
+    public String formatMessage() throws JsonProcessingException {
+        var om = new ObjectMapper();
+        var node = om.createObjectNode();
+        node = node.set("status", om.valueToTree(status));
+        node = node.set("data", om.valueToTree(data));
+        return om.writeValueAsString(node);
     }
 }

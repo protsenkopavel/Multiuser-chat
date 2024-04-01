@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum Status {
 
     OK(1, "ok"),
-    ERROR(2, "error");
+    ERROR(2, "error"),
+    CLOSE(3, "close");;
 
     private final String name;
 

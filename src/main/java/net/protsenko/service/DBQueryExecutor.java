@@ -56,7 +56,12 @@ public class DBQueryExecutor {
         return execute("SELECT * FROM auth_user WHERE name = '" + name + "'", User.resultSetMapper).get(0);
     }
 
-    public static DBQueryExecutor Instance = null;
+    public void insertUser(User user) {
+        var statement = "INSERT INTO auth_user(name, pswhash) values('" + user.getName() + "', '" + user.getPswHash() + "')";
+        execute(statement, resultSet -> "");
+    }
+
+    private static DBQueryExecutor Instance = null;
 
     public static DBQueryExecutor getInstance() {
         if (Instance == null) {
