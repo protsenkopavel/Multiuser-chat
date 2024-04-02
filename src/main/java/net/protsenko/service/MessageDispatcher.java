@@ -1,5 +1,6 @@
 package net.protsenko.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import net.protsenko.model.OutputEvent;
 import net.protsenko.model.Status;
 
@@ -15,10 +16,10 @@ import java.util.logging.Logger;
 
 public class MessageDispatcher {
 
-    private Map<String, PrintWriter> ddd = new Hashtable<>();
-    private Map<String, Function<Object, Void>> closables = new Hashtable<>();
+    private final Map<String, PrintWriter> ddd = new Hashtable<>();
+    private final Map<String, Function<Object, Void>> closables = new Hashtable<>();
 
-    private BlockingQueue<OutputEvent> queue = new ArrayBlockingQueue<OutputEvent>(1000, true);
+    private final BlockingQueue<OutputEvent> queue = new ArrayBlockingQueue<OutputEvent>(1000, true);
 
     public synchronized void addSubscriber(String username, PrintWriter pw, Function<Object, Void> releaser) {
         if (username == null || pw == null || releaser == null) throw new IllegalArgumentException("Bad call");
@@ -41,7 +42,13 @@ public class MessageDispatcher {
                     if (event.getResponse().getStatus() == Status.CLOSE) {
                         var un = usernames.get(0);
                         var outWriter = ddd.remove(un);
-                        if (outWriter != null && !outWriter.checkError()) outWriter.write(resp.formatMessage());
+                        if (outWriter != null && !outWriter.checkError()) {
+                            try {
+                                outWriter.write(resp.formatMessage());
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                         try {
                             var closable = closables.remove(un);
                             if (closable != null) closable.apply("");
@@ -52,7 +59,13 @@ public class MessageDispatcher {
 
                     usernames.forEach(un -> {
                         var outWriter = ddd.get(un);
-                        if (outWriter != null && !outWriter.checkError()) outWriter.write(resp.formatMessage());
+                        if (outWriter != null && !outWriter.checkError()) {
+                            try {
+                                outWriter.write(resp.formatMessage());
+                            } catch (JsonProcessingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     });
                 }
             }
@@ -68,7 +81,7 @@ public class MessageDispatcher {
         return Instance;
     }
 
-    private void logWarning(Exception e) {
+    private void logWarning(Exception e)     {
         Logger.getLogger("DispatcherLogger").log(Level.WARNING, e.getMessage(), e);
     }
 }

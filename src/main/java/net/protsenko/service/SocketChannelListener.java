@@ -15,7 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SocketChannelListener extends Thread {
-    private Socket clientSocket;
+    private final Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
 
