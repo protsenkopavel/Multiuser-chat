@@ -6,12 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Response {
 
     Status status;
+    Message message;
 
-    String data;
-
-    public Response(Status status, String message) {
+    public Response(Status status, Message message) {
         this.status = status;
-        this.data = message;
+        this.message = message;
     }
 
     public Status getStatus() {
@@ -22,19 +21,11 @@ public class Response {
         this.status = status;
     }
 
-    public String getData() {
-        return data;
+    public Message getMessage() {
+        return message;
     }
 
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public String formatMessage() throws JsonProcessingException {
-        var om = new ObjectMapper();
-        var node = om.createObjectNode();
-        node = node.set("status", om.valueToTree(status));
-        node = node.set("data", om.valueToTree(data));
-        return om.writeValueAsString(node);
+    public void setMessage(Message message) {
+        this.message = message;
     }
 }

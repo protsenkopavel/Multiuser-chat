@@ -1,4 +1,4 @@
-create table if not exists nauth_user(name varchar(25) not null unique, pswhash varchar(60) not null, isOnline bool not null default false);
+create table if not exists auth_user(name varchar(25) not null unique, pswhash varchar(60) not null, isOnline bool not null default false);
 
 insert into auth_user(name, pswhash) values 
     ('Admin', '$2a$12$Uf69DoqIgmKVdTl8ah5tIOWuTUtueMRaavtl7M9u01oj.7BD5RsG2'),

@@ -1,0 +1,1 @@
+create table if not exists history(id serial primary key, sender varchar, data varchar)

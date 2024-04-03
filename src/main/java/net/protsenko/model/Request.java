@@ -1,5 +1,7 @@
 package net.protsenko.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Request {
 
     EventType eventType;
@@ -9,7 +11,11 @@ public class Request {
     String message;
 
 
-    public Request(EventType eventType, String credentials, String message) {
+    public Request(
+            @JsonProperty("eventType") EventType eventType,
+            @JsonProperty("credentials") String credentials,
+            @JsonProperty("message") String message
+    ) {
         this.eventType = eventType;
         this.credentials = credentials;
         this.message = message;

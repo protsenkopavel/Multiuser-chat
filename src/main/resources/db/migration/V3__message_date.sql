@@ -1,0 +1,1 @@
+alter table history add column send_date timestamp default now();

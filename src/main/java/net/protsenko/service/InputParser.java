@@ -6,8 +6,10 @@ import net.protsenko.model.Request;
 
 public class InputParser {
 
+    private static ObjectMapper om = new ObjectMapper();
+
     public static Request parseInputString(String string) throws JsonProcessingException {
-        return new ObjectMapper().readValue(string, Request.class);
+        return om.readValue(string, Request.class);
     }
 
 }

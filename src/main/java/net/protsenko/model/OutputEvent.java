@@ -5,24 +5,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OutputEvent {
-    private List<String> usernames;
+    private String username;
     private Response response;
 
-    public OutputEvent(List<String> usernames, Response response) {
-        this.usernames = usernames;
+    public OutputEvent(String username, Response response) {
+        this.username = username;
         this.response = response;
     }
 
-    public static OutputEvent forOne(String username, Response response) {
-        return new OutputEvent(Arrays.asList(username), response);
+    public String getUsername() {
+        return username;
     }
 
-    public List<String> getUsernames() {
-        return usernames;
-    }
-
-    public void setUsernames(List<String> usernames) {
-        this.usernames = usernames;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public Response getResponse() {
@@ -31,5 +27,13 @@ public class OutputEvent {
 
     public void setResponse(Response response) {
         this.response = response;
+    }
+
+    @Override
+    public String toString() {
+        return "OutputEvent{" +
+                "username='" + username + '\'' +
+                ", response=" + response +
+                '}';
     }
 }
