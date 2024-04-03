@@ -40,9 +40,8 @@ public class MessageDispatcher {
         new Thread(() -> {
             while (true) {
                 try {
-                    OutputEvent event = queue.poll();
+                    OutputEvent event = queue.take();
 
-                    if (event == null) continue;
                     System.out.println("Process event " + event);
 
                     if (event.getResponse() != null) {
@@ -62,7 +61,7 @@ public class MessageDispatcher {
                             if (closable != null) closable.apply("");
                         }
 
-                        List<PrintWriter> outs = List.of();
+                        List<PrintWriter> outs = new ArrayList<>();
 
                         if (username == null) outs = outputs.values().stream().toList();
                         else if (outputs.containsKey(username)) outs = List.of(outputs.get(username));

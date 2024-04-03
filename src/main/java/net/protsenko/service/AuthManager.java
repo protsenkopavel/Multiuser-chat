@@ -7,20 +7,21 @@ public class AuthManager {
 
     private final DBQueryExecutor dbQueryExecutor;
 
-    public AuthManager(DBQueryExecutor dbQueryExecutor) {
+    private AuthManager(DBQueryExecutor dbQueryExecutor) {
         this.dbQueryExecutor = dbQueryExecutor;
     }
 
     public boolean checkAuth(String name, String psw) {
-        User user = null;
 
         try {
-            user = dbQueryExecutor.getUser(name);
+            User user = dbQueryExecutor.getUser(name);
+            if (user != null) {
+                return BCrypt.verifyer().verify(psw.toCharArray(), user.getPswHash()).verified;
+            }
         } catch (Exception e) {
             return false;
         }
-
-        return BCrypt.verifyer().verify(psw.toCharArray(), user.getPswHash()).verified;
+        return false;
     }
 
     public static AuthManager Instance = null;

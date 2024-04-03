@@ -101,6 +101,8 @@ public class SocketChannelListener extends Thread {
             }
         } catch (IOException e) {
             logWarning(e);
+        }finally {
+            close();
         }
     }
 
@@ -108,25 +110,27 @@ public class SocketChannelListener extends Thread {
     private void close() {
         try {
             System.out.println("Closing");
-            if (username != null) DBExecutor.setOffline(username);
-            in.close();
-            out.close();
-            clientSocket.close();
+            if (username != null) {
+                DBExecutor.setOffline(username);
+            }
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+            if (clientSocket != null) {
+                clientSocket.close();
+            }
         } catch (IOException e) {
-
+            logWarning(e);
         }
     }
 
     private Function<Object, String> closeFun() {
         return o -> {
-            try {
-                System.out.println("Closing");
-                in.close();
-                out.close();
-                clientSocket.close();
-            } catch (IOException e) {
-                System.out.println(e);
-            }
+            System.out.println("Closing from function");
+            close();
             return "";
         };
     }
