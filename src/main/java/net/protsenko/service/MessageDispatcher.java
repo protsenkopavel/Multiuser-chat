@@ -6,17 +6,20 @@ import net.protsenko.model.OutputEvent;
 import net.protsenko.model.Status;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MessageDispatcher {
 
-    private final Map<String, PrintWriter> outputs = new Hashtable<>();
-    private final Map<String, Function<Object, String>> closables = new Hashtable<>();
+    private final Map<String, PrintWriter> outputs = new ConcurrentHashMap<>();
+    private final Map<String, Function<Object, String>> closables = new ConcurrentHashMap<>();
     private final BlockingQueue<OutputEvent> queue = new ArrayBlockingQueue<>(1000, true);
     private final ObjectMapper om = new ObjectMapper();
 
@@ -36,21 +39,75 @@ public class MessageDispatcher {
         }
     }
 
-    public void start() {
+    private void start() {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    OutputEvent event = queue.take();
+                    processEvent(event);
+                } catch (Exception e) {
+                    logWarning(e);
+                }
+            }
+        }).start();
+    }
+
+    private void processEvent(OutputEvent event) throws JsonProcessingException {
+        String username = event.getUsername();
+        if (event.getResponse() != null) {
+            String response = om.writeValueAsString(event.getResponse()) + "\n";
+            if (event.getResponse().getStatus() == Status.CLOSE) {
+
+                PrintWriter outWriter = outputs.remove(username);
+
+                if (outWriter != null && !outWriter.checkError()) {
+                    outWriter.write(response);
+                }
+
+                Function<Object, String> closable = closables.remove(username);
+
+                if (closable != null) {
+                    closable.apply(response);
+                }
+            } else {
+
+                List<PrintWriter> outs = new ArrayList<>();
+
+                if (username == null) {
+                    outs.addAll(outputs.values());
+                } else {
+
+                    PrintWriter pw = outputs.get(username);
+
+                    if (pw != null) {
+                        outs.add(pw);
+                    }
+                }
+
+                for (PrintWriter out : outs) {
+                    if (out != null && !out.checkError()) {
+                        out.write(response);
+                        out.flush();
+                    }
+                }
+            }
+        }
+    }
+
+    /*public void start() {
         new Thread(() -> {
             while (true) {
                 try {
                     OutputEvent event = queue.take();
 
                     System.out.println("Process event " + event);
+                    String username = event.getUsername();
 
                     if (event.getResponse() != null) {
-                        String username = event.getUsername();
-                        var resp = event.getResponse();
-                        var respString = om.writeValueAsString(resp) + "\n";
+                        String respString = om.writeValueAsString(event.getResponse()) + "\n";
                         if (event.getResponse().getStatus() == Status.CLOSE) {
 
-                            if (username == null) continue;
+                            if (username != null) continue;
                             DBQueryExecutor.getInstance().setOffline(username);
 
                             var outWriter = outputs.remove(username);
@@ -69,7 +126,7 @@ public class MessageDispatcher {
                         for (var out : outs) {
                             if (out != null && !out.checkError()) {
                                 var to = outputs.entrySet().stream().filter(e -> e.getValue() == out).map(Map.Entry::getKey).findFirst();
-                                System.out.println("Send message " + respString +  " to " +  to);
+                                System.out.println("Send message " + respString + " to " + to);
                                 out.write(respString);
                                 out.flush();
                             }
@@ -80,9 +137,8 @@ public class MessageDispatcher {
                 }
             }
         }).start();
-    }
+    }*/
 
-    private static MessageDispatcher Instance = null;
 //    {"eventType": "send", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
 //    {"eventType": "online", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
 //    {"eventType": "logout", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
@@ -97,7 +153,7 @@ public class MessageDispatcher {
 //    {"eventType": "online", "message": "hello123", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
 //    {"eventType": "logout", "message": "", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
 
-
+    private static MessageDispatcher Instance = null;
 
     public static MessageDispatcher getInstance() {
         if (Instance == null) {

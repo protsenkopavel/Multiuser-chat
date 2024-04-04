@@ -2,7 +2,6 @@ package net.protsenko.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.protsenko.model.*;
-import net.protsenko.service.InputParser;
 import net.protsenko.util.Base64Util;
 
 import java.io.BufferedReader;
@@ -10,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -33,11 +31,14 @@ public class SocketChannelListener extends Thread {
     }
 
     public void run() {
-        try {
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+        try (
+                Socket socket = clientSocket;
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+        ) {
 
-            in = new BufferedReader(
-                    new InputStreamReader(clientSocket.getInputStream()));
+            this.out = out;
+            this.in = in;
 
             String firstInput = in.readLine();
             Request request;
@@ -51,7 +52,6 @@ public class SocketChannelListener extends Thread {
                     String requestCredentials = request.getCredentials();
                     var creds = Base64Util.decodeBase64Credentials(requestCredentials);
                     username = creds.getLeft();
-                    MD.addSubscriber(username, out, closeFun());
                     var isAuth = authManager.checkAuth(username, creds.getRight());
                     if (!isAuth) {
                         try {
@@ -63,6 +63,7 @@ public class SocketChannelListener extends Thread {
                         }
                     } else {
                         System.out.println("Auth");
+                        MD.addSubscriber(username, out, closeFun());
                         DBExecutor.setOnline(username);
                         var history = DBExecutor.lastMessages(10);
                         Collections.reverse(history);
@@ -72,7 +73,6 @@ public class SocketChannelListener extends Thread {
 
                         RH.processMessage(new AuthenticatedRequest(request, username));
                         RH.processMessage(new AuthenticatedRequest(request, username));
-                        credentials = request.getCredentials();
                     }
                     //send last N messages from chat
                 } catch (Exception e) {
@@ -88,8 +88,12 @@ public class SocketChannelListener extends Thread {
                 logLine("continous" + inputLine);
                 try {
                     request = InputParser.parseInputString(inputLine);
-                    if (!request.getCredentials().equals(credentials)) {
-                        MD.sendEvent(new OutputEvent(username, new Response(Status.CLOSE,  Message.system("Malware"))));
+                    String requestCredentials = request.getCredentials();
+                    var creds = Base64Util.decodeBase64Credentials(requestCredentials);
+                    username = creds.getLeft();
+                    var isAuth = authManager.checkAuth(username, creds.getRight());
+                    if (!isAuth) {
+                        MD.sendEvent(new OutputEvent(username, new Response(Status.CLOSE, Message.system("Malware"))));
                         break;
                     }
 
@@ -101,7 +105,7 @@ public class SocketChannelListener extends Thread {
             }
         } catch (IOException e) {
             logWarning(e);
-        }finally {
+        } finally {
             close();
         }
     }
