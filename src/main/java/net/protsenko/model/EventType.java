@@ -6,7 +6,8 @@ public enum EventType {
 
     LOGOUT(1, "logout"),
     ONLINE(2, "online"),
-    SEND(3,"send");
+    SEND(3,"send"),
+    SIGN_UP(4, "signUp");
 
     private final String name;
 

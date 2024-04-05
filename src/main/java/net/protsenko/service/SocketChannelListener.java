@@ -4,10 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 import net.protsenko.model.*;
 import net.protsenko.util.Base64Util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.function.Function;
@@ -33,8 +30,8 @@ public class SocketChannelListener extends Thread {
     public void run() {
         try (
                 Socket socket = clientSocket;
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))
+                PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))
         ) {
 
             this.out = out;
@@ -42,7 +39,7 @@ public class SocketChannelListener extends Thread {
 
             String firstInput = in.readLine();
             Request request;
-            String credentials = "";
+            String password = "";
 
             if (firstInput != null) {
                 logLine("first" + firstInput);
@@ -52,29 +49,25 @@ public class SocketChannelListener extends Thread {
                     String requestCredentials = request.getCredentials();
                     var creds = Base64Util.decodeBase64Credentials(requestCredentials);
                     username = creds.getLeft();
-                    var isAuth = authManager.checkAuth(username, creds.getRight());
+                    password = creds.getRight();
+                    var isAuth = authManager.checkAuth(username, password);
                     if (!isAuth) {
-                        try {
-                            DBExecutor.getUser(username);
-                            MD.sendEvent(new OutputEvent(username, new Response(Status.CLOSE, Message.system("Wrong password"))));
-                        } catch (IndexOutOfBoundsException e) {
-                            var pswhash = BCrypt.withDefaults().hashToString(12, creds.getRight().toCharArray());
-                            DBExecutor.insertUser(new User(username, pswhash, false));
-                        }
+//                        var pswhash = BCrypt.withDefaults().hashToString(12, password.toCharArray());
+//                        DBExecutor.insertUser(new User(username, pswhash, false));
+                        MD.sendEvent(new OutputEvent(username, new Response(Status.CLOSE, Message.system("Wrong password"))), out);
                     } else {
                         System.out.println("Auth");
                         MD.addSubscriber(username, out, closeFun());
                         DBExecutor.setOnline(username);
+                        //send last N messages from chat
                         var history = DBExecutor.lastMessages(10);
                         Collections.reverse(history);
                         for (var msg : history) {
                             MD.sendEvent(new OutputEvent(username, new Response(Status.OK, msg)));
                         }
-
                         RH.processMessage(new AuthenticatedRequest(request, username));
-                        RH.processMessage(new AuthenticatedRequest(request, username));
+                        MD.sendEvent(new OutputEvent(username, new Response(Status.OK,  Message.system("Online users: " + DBExecutor.onlineUsers().toString()))));
                     }
-                    //send last N messages from chat
                 } catch (Exception e) {
                     logWarning(e);
                     close();
@@ -90,11 +83,10 @@ public class SocketChannelListener extends Thread {
                     request = InputParser.parseInputString(inputLine);
                     String requestCredentials = request.getCredentials();
                     var creds = Base64Util.decodeBase64Credentials(requestCredentials);
-                    username = creds.getLeft();
-                    var isAuth = authManager.checkAuth(username, creds.getRight());
-                    if (!isAuth) {
-                        MD.sendEvent(new OutputEvent(username, new Response(Status.CLOSE, Message.system("Malware"))));
-                        break;
+                    String anotherPassword = creds.getRight();
+                    if (!anotherPassword.equals(password)) {
+                        System.out.println("Попался");
+                        MD.sendEvent(new OutputEvent(username, new Response(Status.CLOSE, Message.system("Malware"))), out);
                     }
 
                     RH.processMessage(new AuthenticatedRequest(request, username));
@@ -117,13 +109,10 @@ public class SocketChannelListener extends Thread {
             if (username != null) {
                 DBExecutor.setOffline(username);
             }
-            if (in != null) {
-                in.close();
-            }
             if (out != null) {
                 out.close();
             }
-            if (clientSocket != null) {
+            if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close();
             }
         } catch (IOException e) {

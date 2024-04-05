@@ -33,7 +33,17 @@ public class MessageDispatcher {
     public void sendEvent(OutputEvent event) {
         try {
             queue.put(event);
-            System.out.println(queue.size());
+            System.out.println(queue.size() + " размер очереди");
+        } catch (InterruptedException e) {
+            logWarning(e);
+        }
+    }
+
+    public void sendEvent(OutputEvent event, PrintWriter out) {
+        try {
+            queue.put(event);
+            outputs.put(event.getUsername(), out);
+            System.out.println(queue.size() + " размер очереди");
         } catch (InterruptedException e) {
             logWarning(e);
         }
@@ -56,39 +66,33 @@ public class MessageDispatcher {
         String username = event.getUsername();
         if (event.getResponse() != null) {
             String response = om.writeValueAsString(event.getResponse()) + "\n";
-            if (event.getResponse().getStatus() == Status.CLOSE) {
 
-                PrintWriter outWriter = outputs.remove(username);
+            List<PrintWriter> outs = new ArrayList<>();
 
-                if (outWriter != null && !outWriter.checkError()) {
-                    outWriter.write(response);
+            if (username == null) {
+                outs.addAll(outputs.values());
+            } else {
+                PrintWriter pw = outputs.get(username);
+                if (pw != null) {
+                    outs.add(pw);
                 }
+            }
 
+            for (PrintWriter out : outs) {
+                if (out != null && !out.checkError()) {
+                    out.write(response);
+                    out.flush();
+                }
+            }
+
+            if (event.getResponse().getStatus() == Status.CLOSE) {
+                PrintWriter outWriter = outputs.remove(username);
+                if (outWriter != null && !outWriter.checkError()) {
+                    outWriter.close();
+                }
                 Function<Object, String> closable = closables.remove(username);
-
                 if (closable != null) {
                     closable.apply(response);
-                }
-            } else {
-
-                List<PrintWriter> outs = new ArrayList<>();
-
-                if (username == null) {
-                    outs.addAll(outputs.values());
-                } else {
-
-                    PrintWriter pw = outputs.get(username);
-
-                    if (pw != null) {
-                        outs.add(pw);
-                    }
-                }
-
-                for (PrintWriter out : outs) {
-                    if (out != null && !out.checkError()) {
-                        out.write(response);
-                        out.flush();
-                    }
                 }
             }
         }
@@ -140,6 +144,7 @@ public class MessageDispatcher {
     }*/
 
 //    {"eventType": "send", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
+//    {"eventType": "send", "message": "hello", "credentials": "QWRTaW46aGVsbG7="}
 //    {"eventType": "online", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
 //    {"eventType": "logout", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
 
