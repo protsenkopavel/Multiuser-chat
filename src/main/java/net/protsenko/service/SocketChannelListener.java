@@ -11,7 +11,7 @@ public class SocketChannelListener extends Thread {
     private PrintWriter out;
     private BufferedReader in;
 
-    private final DBQueryExecutor DBExecutor = DBQueryExecutor.getInstance();
+    private final DBQueryExecutor DBExecutor = DBQueryExecutor.getINSTANCE();
     private final RequestHandler RH = RequestHandler.getINSTANCE();
     private final EOLManager eolManager = EOLManager.getINSTANCE();
 

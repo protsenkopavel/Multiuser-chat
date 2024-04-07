@@ -4,15 +4,11 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import net.protsenko.model.Message;
 import net.protsenko.model.User;
-import org.flywaydb.core.internal.util.Pair;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DBQueryExecutor {
     private final String URL;
@@ -25,6 +21,19 @@ public class DBQueryExecutor {
         this.URL = URL;
         this.USER = USER;
         this.PASSWORD = PASSWORD;
+    }
+
+    private static DBQueryExecutor INSTANCE = null;
+
+    public static DBQueryExecutor getINSTANCE() {
+        if (INSTANCE == null) {
+            Config config = ConfigFactory.load("application.conf");
+            INSTANCE = new DBQueryExecutor(
+                    config.getString("datasource.url"),
+                    config.getString("datasource.username"),
+                    config.getString("datasource.password"));
+        }
+        return INSTANCE;
     }
 
     private <T> List<T> execute(String query, Function<ResultSet, T> mapper) {
@@ -73,12 +82,37 @@ public class DBQueryExecutor {
 
 
     public User getUser(String name) {
-        return execute("SELECT * FROM auth_user WHERE name = '" + name + "'", User.resultSetMapper).get(0);
+        try {
+            return execute("SELECT * FROM auth_user WHERE name = '" + name + "'", User.resultSetMapper).get(0);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     public void insertUser(User user) {
-        var statement = "INSERT INTO auth_user(name, pswhash) values('" + user.getName() + "', '" + user.getPswHash() + "')";
-        execute(statement, resultSet -> "");
+        executeUpdate("INSERT INTO auth_user(name, pswhash) values(?, ?)", stmt -> {
+            try {
+                stmt.setString(1, user.getName());
+                stmt.setString(2, user.getPswHash());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+            return stmt;
+        });
+    }
+
+    public void saveMessage(String from, String data) {
+        executeUpdate("INSERT INTO history(sender, data, send_date) VALUES (?, ?, ?::timestamp)", stmt -> {
+                    try {
+                        stmt.setString(1, from);
+                        stmt.setString(2, data);
+                        stmt.setString(3, LocalDateTime.now().toString());
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    return stmt;
+                }
+        );
     }
 
     public Integer onlineUsers() {
@@ -128,33 +162,4 @@ public class DBQueryExecutor {
             }
         });
     }
-
-    public void saveMessage(String from, String data) {
-        executeUpdate("INSERT INTO history(sender, data, send_date) VALUES (?, ?, ?::timestamp)", stmt -> {
-                    try {
-                        stmt.setString(1, from);
-                        stmt.setString(2, data);
-                        stmt.setString(3, LocalDateTime.now().toString());
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                    }
-                    return stmt;
-                }
-        );
-
-    }
-
-    private static DBQueryExecutor Instance = null;
-
-    public static DBQueryExecutor getInstance() {
-        if (Instance == null) {
-            Config config = ConfigFactory.load("application.conf");
-            Instance = new DBQueryExecutor(
-                    config.getString("datasource.url"),
-                    config.getString("datasource.username"),
-                    config.getString("datasource.password"));
-        }
-        return Instance;
-    }
-
 }

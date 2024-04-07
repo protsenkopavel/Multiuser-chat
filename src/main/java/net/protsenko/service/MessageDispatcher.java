@@ -16,20 +16,26 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessageDispatcher {
     private final Map<String, PrintWriter> outputs = new ConcurrentHashMap<>();
 
-    private final BlockingQueue<OutputEvent> queue = new ArrayBlockingQueue<>(1000, true);
-    private final EOLManager eolManager = EOLManager.getINSTANCE();
-    private final ObjectMapper om = new ObjectMapper();
+    private final BlockingQueue<OutputEvent> queue;
+    private final EOLManager eolManager;
+    private final ObjectMapper om;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
 
     private static volatile MessageDispatcher INSTANCE = null;
 
-    private MessageDispatcher() {
+    private MessageDispatcher(BlockingQueue<OutputEvent> queue, EOLManager eolManager, ObjectMapper om) {
+        this.queue = queue;
+        this.eolManager = eolManager;
+        this.om = om;
     }
 
     public static MessageDispatcher getINSTANCE() {
         if (INSTANCE == null) {
             synchronized (MessageDispatcher.class) {
-                INSTANCE = new MessageDispatcher();
+                INSTANCE = new MessageDispatcher(
+                        new ArrayBlockingQueue<>(1000, true),
+                        EOLManager.getINSTANCE(),
+                        new ObjectMapper());
                 INSTANCE.start();
             }
         }
@@ -81,7 +87,10 @@ public class MessageDispatcher {
             }
 
             for (PrintWriter out : outs) {
-                if (out != null && !out.checkError()) out.write(response);
+                if (out != null && !out.checkError()) {
+                    out.write(response);
+                    out.flush();
+                }
             }
 
             if (event.getResponse().getStatus() == Status.CLOSE) {
@@ -96,7 +105,6 @@ public class MessageDispatcher {
     }
 
 //    {"eventType": "send", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
-//    {"eventType": "send", "message": "hello", "credentials": "QWRTaW46aGVsbG7="}
 //    {"eventType": "online", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
 //    {"eventType": "logout", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
 
@@ -112,6 +120,9 @@ public class MessageDispatcher {
 
 
 //    {"eventType": "signUp", "message": "", "credentials": "VGVzdHVzZXI6cGFzc3dvcmQ="}
+//    {"eventType": "signUp", "message": "", "credentials": "QWRtaW5BZG1pbjpwYXNzd29yZAo="}
+//    {"eventType": "signUp", "message": "", "credentials": "QWRtaW5FYmxhbjpwYXNzd29yZAo="}
+//    {"eventType": "send", "message": "", "credentials": "QWRtaW5FYmxhbjpwYXNzd29yZAo="}
 //    {"eventType": "signUp", "message": "", "credentials": "UGF2ZWw6cGFzc3dvcmQ="}
 //    {"eventType": "signUp", "message": "", "credentials": "QW5vdGhlclVzZXI6cGFzc3dvcmQ="}
 //    {"eventType": "signUp", "message": "", "credentials": "b2hTaMSxdEhlcmVXZUdvQWdhaW46cGFzc3dvcmQ="}
