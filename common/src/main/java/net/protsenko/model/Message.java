@@ -1,5 +1,7 @@
 package net.protsenko.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDateTime;
 
 public class Message {
@@ -8,7 +10,7 @@ public class Message {
     String data;
     String date;
 
-    public Message(String from, String data) {
+    public Message(@JsonProperty("from") String from, @JsonProperty("data") String data) {
         this.from = from;
         this.data = data;
         this.date = LocalDateTime.now().toString();
