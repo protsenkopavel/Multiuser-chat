@@ -1,47 +1,36 @@
 package net.protsenko.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.PrintWriter;
+import java.util.UUID;
 
-public class Request {
+public class Request extends PreRequest {
+    private UUID senderId;
 
-    EventType eventType;
+    private PrintWriter pw;
 
-    String credentials;
-
-    String message;
-
-
-    public Request(
-            @JsonProperty("eventType") EventType eventType,
-            @JsonProperty("credentials") String credentials,
-            @JsonProperty("message") String message
-    ) {
-        this.eventType = eventType;
-        this.credentials = credentials;
-        this.message = message;
+    private Request(EventType eventType, String credentials, String message, UUID senderId, PrintWriter pw) {
+        super(eventType, credentials, message);
+        this.senderId = senderId;
+        this.pw = pw;
     }
 
-    public EventType getEventType() {
-        return eventType;
+    public static Request of(PreRequest r, UUID senderId, PrintWriter pw) {
+        return new Request(r.eventType, r.credentials, r.message, senderId, pw);
     }
 
-    public void setEventType(EventType eventType) {
-        this.eventType = eventType;
+    public UUID getSenderId() {
+        return senderId;
     }
 
-    public String getCredentials() {
-        return credentials;
+    public void setSenderId(UUID senderId) {
+        this.senderId = senderId;
     }
 
-    public void setCredentials(String credentials) {
-        this.credentials = credentials;
+    public PrintWriter getPw() {
+        return pw;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+    public void setPw(PrintWriter pw) {
+        this.pw = pw;
     }
 }

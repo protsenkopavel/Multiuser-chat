@@ -19,7 +19,7 @@ public class DBQueryExecutor {
     private final String USER;
     private final String PASSWORD;
 
-    private final Logger lgr = Logger.getLogger("DBQE");
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
 
     private DBQueryExecutor(String URL, String USER, String PASSWORD) {
         this.URL = URL;
@@ -37,13 +37,13 @@ public class DBQueryExecutor {
                     T res = mapper.apply(rs);
                     if (res != null) acc.add(res);
                 } catch (Exception e) {
-                    lgr.log(Level.SEVERE, e.getMessage(), e);
+                    log.error(e.getMessage(), e);
                 }
             }
 
             return acc;
         } catch (Exception e) {
-            lgr.log(Level.SEVERE, e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return null;
         }
     }
@@ -55,14 +55,14 @@ public class DBQueryExecutor {
             stmt = updater.apply(stmt);
             stmt.executeUpdate();
         } catch (Exception e) {
-            lgr.log(Level.SEVERE, e.getMessage(), e);
+            log.error(e.getMessage(), e);
         } finally {
             try {
                 if (stmt != null) {
                     stmt.close();
                 }
             } catch (Exception e) {
-                lgr.log(Level.SEVERE, e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         }
     }
@@ -97,7 +97,7 @@ public class DBQueryExecutor {
                     try {
                         stmt.setString(1, username);
                     } catch (Exception e) {
-                        lgr.log(Level.SEVERE, e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                     }
                     return stmt;
                 }
@@ -109,7 +109,7 @@ public class DBQueryExecutor {
                     try {
                         stmt.setString(1, username);
                     } catch (Exception e) {
-                        lgr.log(Level.SEVERE, e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                     }
                     return stmt;
                 }
@@ -121,11 +121,8 @@ public class DBQueryExecutor {
         var statement = "SELECT sender, data, send_date FROM history ORDER BY id DESC" + " LIMIT " + n;
         return execute(statement, resultSet -> {
             try {
-                return new Message(
-                        resultSet.getString(1),
-                        resultSet.getString(2),
-                        resultSet.getString(3)
-                );
+                return new Message(resultSet.getString(1), resultSet.getString(2))
+                        .withDate(resultSet.getString(3));
             } catch (Exception e) {
                 return null;
             }
@@ -139,7 +136,7 @@ public class DBQueryExecutor {
                         stmt.setString(2, data);
                         stmt.setString(3, LocalDateTime.now().toString());
                     } catch (Exception e) {
-                        lgr.log(Level.SEVERE, e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                     }
                     return stmt;
                 }

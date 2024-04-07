@@ -8,10 +8,10 @@ public class Message {
     String data;
     String date;
 
-    public Message(String from, String data, String date) {
+    public Message(String from, String data) {
         this.from = from;
         this.data = data;
-        this.date = (date != null) ? date : LocalDateTime.now().toString();
+        this.date = LocalDateTime.now().toString();
     }
 
     public String getFrom() {
@@ -30,7 +30,6 @@ public class Message {
         this.data = data;
     }
 
-
     public String getDate() {
         return date;
     }
@@ -39,7 +38,12 @@ public class Message {
         this.date = date;
     }
 
+    public Message withDate(String date) {
+        this.date = date;
+        return this;
+    }
+
     public static Message system(String data) {
-        return new Message("system", data, LocalDateTime.now().toString());
+        return new Message("system", data).withDate(LocalDateTime.now().toString());
     }
 }

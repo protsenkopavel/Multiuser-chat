@@ -5,32 +5,32 @@ import net.protsenko.model.User;
 
 public class AuthManager {
 
-    private final DBQueryExecutor dbQueryExecutor;
+    private static volatile AuthManager INSTANCE = null;
 
-    private AuthManager(DBQueryExecutor dbQueryExecutor) {
-        this.dbQueryExecutor = dbQueryExecutor;
+    private AuthManager() {
     }
 
-    public boolean checkAuth(String name, String psw) {
-
-        try {
-            User user = dbQueryExecutor.getUser(name);
-            if (user != null) {
-                return BCrypt.verifyer().verify(psw.toCharArray(), user.getPswHash()).verified;
+    public static AuthManager getINSTANCE() {
+        if (INSTANCE == null) {
+            synchronized (AuthManager.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new AuthManager();
+                }
             }
+        }
+        return INSTANCE;
+    }
+
+    public boolean checkAuth(User user, String psw) {
+        try {
+            return BCrypt.verifyer().verify(psw.toCharArray(), user.getPswHash()).verified;
         } catch (Exception e) {
             return false;
         }
-        return false;
     }
 
-    public static AuthManager Instance = null;
-
-    public static AuthManager getInstance() {
-        if (Instance == null) {
-            Instance = new AuthManager(DBQueryExecutor.getInstance());
-        }
-        return Instance;
+    public String passwordHash(String password) {
+        return BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
 
 }
