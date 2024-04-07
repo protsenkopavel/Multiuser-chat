@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.protsenko.model.OutputEvent;
 import net.protsenko.model.Status;
+import org.slf4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -16,30 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessageDispatcher {
     private final Map<String, PrintWriter> outputs = new ConcurrentHashMap<>();
 
-    private final BlockingQueue<OutputEvent> queue;
+    private final BlockingQueue<OutputEvent> queue = new ArrayBlockingQueue<>(1000, true);
     private final EOLManager eolManager;
     private final ObjectMapper om;
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(MessageDispatcher.class);
 
-    private static volatile MessageDispatcher INSTANCE = null;
-
-    private MessageDispatcher(BlockingQueue<OutputEvent> queue, EOLManager eolManager, ObjectMapper om) {
-        this.queue = queue;
+    public MessageDispatcher(EOLManager eolManager, ObjectMapper om) {
         this.eolManager = eolManager;
         this.om = om;
-    }
-
-    public static MessageDispatcher getINSTANCE() {
-        if (INSTANCE == null) {
-            synchronized (MessageDispatcher.class) {
-                INSTANCE = new MessageDispatcher(
-                        new ArrayBlockingQueue<>(1000, true),
-                        EOLManager.getINSTANCE(),
-                        new ObjectMapper());
-                INSTANCE.start();
-            }
-        }
-        return INSTANCE;
     }
 
     public synchronized void addSubscriber(String username, PrintWriter pw) {
@@ -48,16 +33,22 @@ public class MessageDispatcher {
         outputs.put(username, pw);
     }
 
+    public synchronized void removeSubscriber(String username) {
+        if (username == null) return;
+
+        outputs.remove(username);
+    }
+
     public void sendEvent(OutputEvent event) {
         try {
             queue.put(event);
-            System.out.println(queue.size() + " размер очереди");
+            log.info(queue.size() + " размер очереди");
         } catch (InterruptedException e) {
             log.warn(e.getMessage(), e);
         }
     }
 
-    private void start() {
+    public void start() {
         new Thread(() -> {
             while (true) {
                 try {

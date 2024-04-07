@@ -12,24 +12,8 @@ import java.util.function.Function;
 public class EOLManager {
 
     private static final Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
-    private final Lock lock;
-    private final Map<UUID, List<String>> socketEvents;
-
-    private static volatile EOLManager INSTANCE = null;
-
-    private EOLManager(Lock lock, Map<UUID, List<String>> map) {
-        this.lock = lock;
-        this.socketEvents = map;
-    }
-
-    public static EOLManager getINSTANCE() {
-        if (INSTANCE == null) {
-            synchronized (EOLManager.class) {
-                INSTANCE = new EOLManager(new ReentrantLock(), new ConcurrentHashMap<>());
-            }
-        }
-        return INSTANCE;
-    }
+    private final Lock lock = new ReentrantLock();
+    private final Map<UUID, List<String>> socketEvents = new ConcurrentHashMap<>();
 
     private String withLock(Function<Object, String> run) {
         try {

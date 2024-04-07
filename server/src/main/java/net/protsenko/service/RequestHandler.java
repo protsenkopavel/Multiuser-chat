@@ -2,8 +2,8 @@ package net.protsenko.service;
 
 import net.protsenko.model.*;
 import net.protsenko.util.Base64Util;
+import org.slf4j.Logger;
 
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -20,42 +20,29 @@ public class RequestHandler {
 
     private final BlockingQueue<Request> queue = new ArrayBlockingQueue<>(1000, true);
     private final Map<UUID, String> socketUserMap = new ConcurrentHashMap<>();
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
 
-    private static volatile RequestHandler INSTANCE = null;
-
-    private RequestHandler(MessageDispatcher md, DBQueryExecutor DBQE, AuthManager authManager, EOLManager eolManager) {
+    public RequestHandler(MessageDispatcher md, DBQueryExecutor DBQE, AuthManager authManager, EOLManager eolManager) {
         this.MD = md;
         this.DBQE = DBQE;
         this.authManager = authManager;
         this.eolManager = eolManager;
     }
 
-    public static RequestHandler getINSTANCE() {
-        if (INSTANCE == null) {
-            synchronized (RequestHandler.class) {
-                INSTANCE = new RequestHandler(
-                        MessageDispatcher.getINSTANCE(),
-                        DBQueryExecutor.getINSTANCE(),
-                        AuthManager.getINSTANCE(),
-                        EOLManager.getINSTANCE());
-                INSTANCE.start();
-            }
-        }
-        return INSTANCE;
-    }
-
-
     public void pushRequest(Request event) {
         try {
             queue.put(event);
-            System.out.println("Размер очереди входящих сообщений:" + queue.size());
+            log.info("Размер очереди входящих сообщений:" + queue.size());
         } catch (InterruptedException e) {
             log.warn(e.getMessage(), e);
         }
     }
 
-    private void start() {
+    public void removeSocket(UUID id) {
+        socketUserMap.remove(id);
+    }
+
+    public void start() {
         new Thread(() -> {
             while (true) {
                 try {

@@ -15,25 +15,12 @@ public class DBQueryExecutor {
     private final String USER;
     private final String PASSWORD;
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DBQueryExecutor.class);
 
-    private DBQueryExecutor(String URL, String USER, String PASSWORD) {
+    public DBQueryExecutor(String URL, String USER, String PASSWORD) {
         this.URL = URL;
         this.USER = USER;
         this.PASSWORD = PASSWORD;
-    }
-
-    private static DBQueryExecutor INSTANCE = null;
-
-    public static DBQueryExecutor getINSTANCE() {
-        if (INSTANCE == null) {
-            Config config = ConfigFactory.load("application.conf");
-            INSTANCE = new DBQueryExecutor(
-                    config.getString("datasource.url"),
-                    config.getString("datasource.username"),
-                    config.getString("datasource.password"));
-        }
-        return INSTANCE;
     }
 
     private <T> List<T> execute(String query, Function<ResultSet, T> mapper) {

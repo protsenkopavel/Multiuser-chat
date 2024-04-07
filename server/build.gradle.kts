@@ -23,6 +23,7 @@ dependencies {
     implementation("at.favre.lib:bcrypt:0.10.2")
     implementation("org.slf4j:slf4j-api:2.0.12")
     implementation("ch.qos.logback:logback-classic:1.5.3")
+    implementation(project(":common"))
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("com.h2database:h2:2.2.224")
