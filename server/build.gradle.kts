@@ -4,25 +4,15 @@ plugins {
     id("com.google.cloud.tools.jib") version "3.4.2"
 }
 
-buildscript {
-    repositories {
-        maven {
-            url = uri("https://plugins.gradle.org/m2/")
-        }
-    }
-    dependencies {
-        classpath("com.google.cloud.tools:jib-gradle-plugin:3.4.2")
-    }
-}
-
-apply(plugin = "com.google.cloud.tools.jib")
-
 application {
-    mainClass = "net.protsenko.Main"
+    mainClass = "net.protsenko.ServerApp"
 }
 
 group = "net.protsenko"
 version = "1.0-SNAPSHOT"
+
+jib.from.image = "eclipse-temurin:17.0.10_7-jre-jammy"
+jib.to.image = "protsenko.multichat-server"
 
 repositories {
     mavenCentral()

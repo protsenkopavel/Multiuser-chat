@@ -38,8 +38,11 @@ public class RequestHandler {
         }
     }
 
-    public void removeSocket(UUID id) {
-        socketUserMap.remove(id);
+    public void logout(UUID id) {
+        var username = socketUserMap.remove(id);
+        DBQE.setOffline(username);
+        MD.removeSubscriber(username);
+
     }
 
     public void start() {

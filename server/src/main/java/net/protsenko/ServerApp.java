@@ -39,7 +39,7 @@ public class ServerApp {
         requestHandler.start();
         messageDispatcher.start();
 
-        SocketService service = new SocketService(dbExecutor, requestHandler, eolManager, messageDispatcher);
+        SocketService service = new SocketService(requestHandler, eolManager);
 
         service.start(socketPort);
 

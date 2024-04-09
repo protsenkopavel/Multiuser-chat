@@ -1,7 +1,5 @@
 package net.protsenko.util;
 
-import ch.qos.logback.core.joran.sanity.Pair;
-
 import java.util.Base64;
 
 public class Base64Util {

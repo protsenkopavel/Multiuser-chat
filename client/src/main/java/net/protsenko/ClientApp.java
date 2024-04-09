@@ -1,6 +1,5 @@
 package net.protsenko;
 
-import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;

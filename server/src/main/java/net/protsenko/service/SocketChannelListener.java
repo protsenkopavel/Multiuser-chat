@@ -13,24 +13,19 @@ public class SocketChannelListener extends Thread {
     private PrintWriter out;
     private BufferedReader in;
 
-    private final DBQueryExecutor DBExecutor;
     private final RequestHandler RH;
     private final EOLManager eolManager;
-    private final MessageDispatcher messageDispatcher;
 
     private static final Logger log = LoggerFactory.getLogger(SocketChannelListener.class);
 
-    private String username = null;
     private boolean blocked = false;
 
     private final UUID socketId = UUID.randomUUID();
 
-    public SocketChannelListener(Socket socket, DBQueryExecutor dbExecutor, RequestHandler rh, EOLManager eolManager, MessageDispatcher messageDispatcher) {
+    public SocketChannelListener(Socket socket, RequestHandler rh, EOLManager eolManager) {
         this.clientSocket = socket;
-        DBExecutor = dbExecutor;
         this.RH = rh;
         this.eolManager = eolManager;
-        this.messageDispatcher = messageDispatcher;
         listenForUpdates();
         log.info("Open socket connection");
     }
@@ -57,14 +52,7 @@ public class SocketChannelListener extends Thread {
                 }
             }
 
-            log.info("ABOBA");
-            log.info(username);
-            RH.removeSocket(socketId);
-
-            if (username != null) {
-                messageDispatcher.removeSubscriber(username);
-                DBExecutor.setOffline(username);
-            }
+            RH.logout(socketId);
 
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
@@ -77,7 +65,6 @@ public class SocketChannelListener extends Thread {
     private void close() {
         try {
             log.info("Closing");
-            if (username != null) DBExecutor.setOffline(username);
             if (out != null) out.close();
             if (in != null) in.close();
             if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
