@@ -70,7 +70,7 @@ public class RequestHandler {
 
         var correspondSocket = socketUserMap.get(request.getSenderId());
 
-        if ((user == null && correspondSocket != null) ) {
+        if ((user == null && correspondSocket != null)) {
             eolManager.sendEvent(request.getSenderId(), "block");
             eolManager.sendEvent(request.getSenderId(), "close");
             return;

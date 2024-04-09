@@ -5,17 +5,14 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import net.protsenko.service.*;
 import org.flywaydb.core.Flyway;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class Main {
+public class ServerApp {
     public static void main(String[] args) throws IOException {
 
-        var log = org.slf4j.LoggerFactory.getLogger(Main.class);
+        var log = LoggerFactory.getLogger(ServerApp.class);
 
         Config config = ConfigFactory.load("application.conf");
 
@@ -29,6 +26,7 @@ public class Main {
                 .load().migrate();
 
         var om = new ObjectMapper();
+
         var authManager = new AuthManager();
 
         var dbExecutor = new DBQueryExecutor(dataSourceUrl, dataSourceUser, dataSourcePassword);
@@ -47,6 +45,5 @@ public class Main {
 
         service.stop();
 
-//{"eventType": "signIn", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
     }
 }

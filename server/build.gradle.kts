@@ -1,7 +1,21 @@
 plugins {
     id("java")
     id("application")
+    id("com.google.cloud.tools.jib") version "3.4.2"
 }
+
+buildscript {
+    repositories {
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
+    }
+    dependencies {
+        classpath("com.google.cloud.tools:jib-gradle-plugin:3.4.2")
+    }
+}
+
+apply(plugin = "com.google.cloud.tools.jib")
 
 application {
     mainClass = "net.protsenko.Main"

@@ -1,6 +1,6 @@
 package net.protsenko.service;
 
-import net.protsenko.model.*;
+import net.protsenko.model.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

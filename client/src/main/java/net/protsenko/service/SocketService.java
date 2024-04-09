@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class GreetClient {
+public class SocketService {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
@@ -17,10 +17,14 @@ public class GreetClient {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    public String sendMessage(String msg) throws IOException {
+    public void sendMessage(String msg) throws IOException {
         out.println(msg);
-        String resp = in.readLine();
-        return resp;
+//        String resp = in.readLine();
+//        return resp;
+    }
+
+    public String receiveMessage() throws IOException {
+        return in.readLine();
     }
 
     public void stopConnection() throws IOException {

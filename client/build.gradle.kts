@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass = "net.protsenko.Main"
+    mainClass = "net.protsenko.ClientApp"
 }
 
 group = "net.protsenko"

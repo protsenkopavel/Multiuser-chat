@@ -1,7 +1,5 @@
 package net.protsenko.service;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import net.protsenko.model.Message;
 import net.protsenko.model.User;
 

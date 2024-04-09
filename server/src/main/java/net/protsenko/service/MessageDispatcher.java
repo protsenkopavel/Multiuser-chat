@@ -95,29 +95,4 @@ public class MessageDispatcher {
         }
     }
 
-//    {"eventType": "send", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
-//    {"eventType": "online", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
-//    {"eventType": "logout", "message": "hello", "credentials": "QWRtaW46aGVsbG8="}
-
-    ///[N Online][Sender] Message
-    // [3 Online] [Admin] Привет
-    // [3 Online] [Operator] Привет админ
-    // [3 Online] [CEO] Запускайте гуся, работяги
-    // prompt
-
-//    {"eventType": "send", "message": "test 5687", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
-//    {"eventType": "online", "message": "hello123", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
-//    {"eventType": "logout", "message": "", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
-
-
-//    {"eventType": "signUp", "message": "", "credentials": "VGVzdHVzZXI6cGFzc3dvcmQ="}
-//    {"eventType": "signUp", "message": "", "credentials": "QWRtaW5BZG1pbjpwYXNzd29yZAo="}
-//    {"eventType": "signUp", "message": "", "credentials": "QWRtaW5FYmxhbjpwYXNzd29yZAo="}
-//    {"eventType": "send", "message": "", "credentials": "QWRtaW5FYmxhbjpwYXNzd29yZAo="}
-//    {"eventType": "signUp", "message": "", "credentials": "UGF2ZWw6cGFzc3dvcmQ="}
-//    {"eventType": "signUp", "message": "", "credentials": "QW5vdGhlclVzZXI6cGFzc3dvcmQ="}
-//    {"eventType": "signUp", "message": "", "credentials": "b2hTaMSxdEhlcmVXZUdvQWdhaW46cGFzc3dvcmQ="}
-//    {"eventType": "online", "message": "hello123", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
-//    {"eventType": "logout", "message": "", "credentials": "T3BlcmF0b3I6aGVsbG8xMjM="}
-
 }
