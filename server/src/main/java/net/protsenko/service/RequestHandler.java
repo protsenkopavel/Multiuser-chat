@@ -18,9 +18,9 @@ public class RequestHandler {
     private final AuthManager authManager;
     private final EOLManager eolManager;
 
-    private final BlockingQueue<Request> queue = new ArrayBlockingQueue<>(1000, true);
+    private final BlockingQueue<ServerSocketRequest> queue = new ArrayBlockingQueue<>(1000, true);
     private final Map<UUID, String> socketUserMap = new ConcurrentHashMap<>();
-    private static final Logger log = org.slf4j.LoggerFactory.getLogger(EOLManager.class);
+    private static final Logger log = org.slf4j.LoggerFactory.getLogger(RequestHandler.class);
 
     public RequestHandler(MessageDispatcher md, DBQueryExecutor DBQE, AuthManager authManager, EOLManager eolManager) {
         this.MD = md;
@@ -29,10 +29,9 @@ public class RequestHandler {
         this.eolManager = eolManager;
     }
 
-    public void pushRequest(Request event) {
+    public void pushRequest(ServerSocketRequest event) {
         try {
             queue.put(event);
-            log.info("Размер очереди входящих сообщений:" + queue.size());
         } catch (InterruptedException e) {
             log.warn(e.getMessage(), e);
         }
@@ -49,7 +48,7 @@ public class RequestHandler {
         new Thread(() -> {
             while (true) {
                 try {
-                    Request request = queue.take();
+                    ServerSocketRequest request = queue.take();
                     processRequest(request);
                 } catch (Exception e) {
                     log.warn(e.getMessage(), e);
@@ -58,10 +57,13 @@ public class RequestHandler {
         }).start();
     }
 
-    private void processRequest(Request request) {
+    private void processRequest(ServerSocketRequest request) {
+
+        log.info("Handle message: {}", request.toString());
+
         var creds = Base64Util.decodeBase64Credentials(request.getCredentials());
-        var username = creds.getLeft();
-        var password = creds.getRight();
+        var username = creds.key();
+        var password = creds.value();
         User user;
 
         try {
@@ -79,23 +81,25 @@ public class RequestHandler {
             return;
         }
 
-        socketUserMap.put(request.getSenderId(), username);
-
         var userState = userState(user);
 
         if (userState == null) return;
+
+        MD.addSubscriber(username, request.getPw());
+
+        log.info("Current user: {}, user state: {}", username, userState);
 
         switch (userState) {
             case NOT_EXISTS -> {
                 if (request.getEventType() == EventType.SIGN_UP) {
                     var pswhash = authManager.passwordHash(password);
                     DBQE.insertUser(new User(username, pswhash, false));
-                    MD.addSubscriber(username, request.getPw());
                     MD.sendEvent(OutputEvent.Ok(username, Message.system("Successfully signed up")));
+                } else {
+                    MD.sendEvent(OutputEvent.Error(username, "Authentication failed: user not exists"));
                 }
             }
             case OFFLINE -> {
-                MD.addSubscriber(username, request.getPw());
                 var isAuth = authManager.checkAuth(user, password);
                 if (!isAuth) {
                     eolManager.sendEvent(request.getSenderId(), "block");
@@ -105,6 +109,7 @@ public class RequestHandler {
                         eolManager.sendEvent(request.getSenderId(), "block");
                         MD.sendEvent(OutputEvent.Closed(username, "Bad request").withSocketId(request.getSenderId()));
                     } else {
+                        socketUserMap.put(request.getSenderId(), username);
                         DBQE.setOnline(username);
                         MD.sendEvent(loggedIn(username));
                         MD.sendEvent(onlineUsers(username));
@@ -115,7 +120,6 @@ public class RequestHandler {
                 }
             }
             case ONLINE -> {
-                MD.addSubscriber(username, request.getPw());
                 var isAuth = authManager.checkAuth(user, password);
                 if (!isAuth) {
                     eolManager.sendEvent(request.getSenderId(), "block");

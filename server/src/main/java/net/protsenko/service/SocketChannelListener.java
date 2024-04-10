@@ -1,6 +1,6 @@
 package net.protsenko.service;
 
-import net.protsenko.model.Request;
+import net.protsenko.model.ServerSocketRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public class SocketChannelListener extends Thread {
                 if (!blocked) {
                     try {
                         var request = InputParser.parseInputString(input);
-                        RH.pushRequest(Request.of(request, socketId, out));
+                        RH.pushRequest(ServerSocketRequest.of(request, socketId, out));
                     } catch (Exception e) {
                         log.warn(e.getMessage(), e);
                     }

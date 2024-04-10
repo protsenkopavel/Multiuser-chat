@@ -20,9 +20,7 @@ public class SocketService {
         try {
             serverSocket = new Socket(ip, port);
             log.info("Connected to server");
-            while (true) {
-                new ServerCommunicator(serverSocket, inputHandler).start();
-            }
+            new ServerCommunicator(serverSocket, inputHandler).run();
         } catch (IOException e) {
             log.info("Could not start socket server");
         }

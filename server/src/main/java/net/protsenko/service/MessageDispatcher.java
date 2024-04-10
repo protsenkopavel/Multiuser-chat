@@ -42,7 +42,6 @@ public class MessageDispatcher {
     public void sendEvent(OutputEvent event) {
         try {
             queue.put(event);
-            log.info(queue.size() + " размер очереди");
         } catch (InterruptedException e) {
             log.warn(e.getMessage(), e);
         }
@@ -62,6 +61,7 @@ public class MessageDispatcher {
     }
 
     private void processEvent(OutputEvent event) throws JsonProcessingException {
+        log.info("Process output event: {}", event);
         String username = event.getUsername();
         if (event.getResponse() != null) {
             String response = om.writeValueAsString(event.getResponse()) + "\n";
@@ -76,6 +76,8 @@ public class MessageDispatcher {
                     outs.add(pw);
                 }
             }
+
+            log.info("Consumers to push message: {}", outs.size());
 
             for (PrintWriter out : outs) {
                 if (out != null && !out.checkError()) {

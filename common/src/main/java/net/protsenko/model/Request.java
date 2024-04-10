@@ -2,7 +2,7 @@ package net.protsenko.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PreRequest {
+public class Request {
 
     EventType eventType;
 
@@ -11,7 +11,7 @@ public class PreRequest {
     String message;
 
 
-    public PreRequest(
+    public Request(
             @JsonProperty("eventType") EventType eventType,
             @JsonProperty("credentials") String credentials,
             @JsonProperty("message") String message
@@ -43,5 +43,14 @@ public class PreRequest {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return "Request{" +
+                "eventType=" + eventType +
+                ", credentials='***masked***'" +
+                ", message='" + message + '\'' +
+                '}';
     }
 }

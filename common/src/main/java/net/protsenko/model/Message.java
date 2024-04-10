@@ -48,4 +48,13 @@ public class Message {
     public static Message system(String data) {
         return new Message("system", data).withDate(LocalDateTime.now().toString());
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "from='" + from + '\'' +
+                ", data='" + data + '\'' +
+                ", date='" + date + '\'' +
+                '}';
+    }
 }

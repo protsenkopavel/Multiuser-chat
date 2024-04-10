@@ -36,6 +36,10 @@ public class ServerApp {
         var messageDispatcher = new MessageDispatcher(eolManager, om);
         var requestHandler = new RequestHandler(messageDispatcher, dbExecutor, authManager, eolManager);
 
+        for (var u : dbExecutor.getUsers()) {
+            dbExecutor.setOffline(u.getName());
+        }
+
         requestHandler.start();
         messageDispatcher.start();
 
