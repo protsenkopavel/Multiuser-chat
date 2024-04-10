@@ -1,35 +1,34 @@
 package net.protsenko.service;
 
-import java.io.BufferedReader;
+import net.protsenko.ClientApp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 
 public class SocketService {
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private Socket serverSocket;
+    private final UserInputHandler inputHandler;
+    private final Logger log = LoggerFactory.getLogger(ClientApp.class);
 
-    public void startConnection(String ip, int port) throws IOException {
-        clientSocket = new Socket(ip, port);
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    public SocketService(UserInputHandler inputHandler) {
+        this.inputHandler = inputHandler;
     }
 
-    public void sendMessage(String msg) throws IOException {
-        out.println(msg);
-//        String resp = in.readLine();
-//        return resp;
+    public void start(String ip, int port) {
+        try {
+            serverSocket = new Socket(ip, port);
+            log.info("Connected to server");
+            while (true) {
+                new ServerCommunicator(serverSocket, inputHandler).start();
+            }
+        } catch (IOException e) {
+            log.info("Could not start socket server");
+        }
     }
 
-    public String receiveMessage() throws IOException {
-        return in.readLine();
-    }
-
-    public void stopConnection() throws IOException {
-        in.close();
-        out.close();
-        clientSocket.close();
+    public void stop() throws IOException {
+        serverSocket.close();
     }
 }
