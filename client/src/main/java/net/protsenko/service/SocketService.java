@@ -19,13 +19,16 @@ public class SocketService {
         try {
             serverSocket = new Socket(ip, port);
             log.info("Connected to server");
+            System.out.println("Connected to server");
             new ServerCommunicator(serverSocket, inputHandler).run();
         } catch (IOException e) {
-            log.info("Could not start socket server");
+            log.info("Could not connect to socket server");
+            System.out.println("Could not connect to socket server");
         }
     }
 
     public void stop() throws IOException {
+        System.out.println("Stop socket service");
         serverSocket.close();
     }
 }

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Console;
 import java.nio.CharBuffer;
+import java.util.Scanner;
 import java.util.function.Function;
 
 public class OnlinePrompt extends Thread {
@@ -31,31 +32,24 @@ public class OnlinePrompt extends Thread {
     }
 
     public void run() {
-        while (!close) {
-            var buffer = CharBuffer.allocate(1000);
-            String message = null;
-
-            try {
-                console.reader().read(buffer);
-                message = new String(buffer.array()).trim();
-            } catch (Exception e) {
-                log.warn(e.getMessage(), e);
-            } finally {
-                buffer.clear();
-            }
-
-            if (message != null && !message.isBlank()) {
+        try (var scanner = new Scanner(System.in)) {
+            while (!close) {
                 try {
-                    if (message.equals(".")) {
-                        sendFunction.apply(logoutRequest.build());
-                        close();
+                    var message = scanner.nextLine();
+                    if (message != null && !message.isBlank()) {
+                        if (message.equals(".")) {
+                            close();
+                            sendFunction.apply(logoutRequest.build());
+                        } else {
+                            sendFunction.apply(sendRequest.withMessage(message).build());
+                        }
                     }
-                    sendFunction.apply(sendRequest.withMessage(message).build());
                 } catch (Exception e) {
                     log.warn(e.getMessage(), e);
                 }
             }
         }
         log.info("Closed");
+
     }
 }

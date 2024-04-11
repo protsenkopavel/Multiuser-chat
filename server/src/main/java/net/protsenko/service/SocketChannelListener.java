@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.UUID;
 
 public class SocketChannelListener extends Thread {
@@ -53,7 +54,8 @@ public class SocketChannelListener extends Thread {
             }
 
             RH.logout(socketId);
-
+        } catch (SocketException e) {
+            log.info("It's ok");
         } catch (IOException e) {
             log.warn(e.getMessage(), e);
         } finally {

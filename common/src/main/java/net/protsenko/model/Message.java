@@ -3,7 +3,8 @@ package net.protsenko.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
+import static net.protsenko.util.DateFormatterUtil.fullDateTimeFormatter;
 
 public class Message {
 
@@ -14,7 +15,7 @@ public class Message {
     public Message(@JsonProperty("from") String from, @JsonProperty("data") String data) {
         this.from = from;
         this.data = data;
-        this.date = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        this.date = LocalDateTime.now().format(fullDateTimeFormatter);
     }
 
     public String getFrom() {
@@ -47,7 +48,7 @@ public class Message {
     }
 
     public static Message system(String data) {
-        return new Message("system", data).withDate(LocalDateTime.now().format(DATE_TIME_FORMATTER));
+        return new Message("system", data).withDate(LocalDateTime.now().format(fullDateTimeFormatter));
     }
 
     @Override
@@ -58,6 +59,4 @@ public class Message {
                 ", date='" + date + '\'' +
                 '}';
     }
-
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd HHmmss");
 }

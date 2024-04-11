@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Random;
 
 public class ClientApp {
     public static void main(String[] args) throws IOException {
@@ -24,5 +25,6 @@ public class ClientApp {
         log.info("***Service starting***");
         service.start(socketServerHost, socketServerPort);
         service.stop();
+        System.out.println("Stop application");
     }
 }

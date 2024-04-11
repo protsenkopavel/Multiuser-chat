@@ -12,8 +12,6 @@ import java.io.IOException;
 public class ServerApp {
     public static void main(String[] args) throws IOException {
 
-        var log = LoggerFactory.getLogger(ServerApp.class);
-
         Config config = ConfigFactory.load("application.conf");
 
         var dataSourceUrl = config.getString("datasource.url");

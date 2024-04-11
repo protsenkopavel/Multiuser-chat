@@ -11,7 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
+import static net.protsenko.util.ConsoleColorUtils.*;
+import static net.protsenko.util.DateFormatterUtil.*;
 
 public class ServerCommunicator {
     private PrintWriter out;
@@ -25,17 +29,7 @@ public class ServerCommunicator {
     OnlinePrompt onlinePrompt = null;
     OnlineActuator onlineActuator = null;
 
-    public static String GREEN = "\u001B[32m";
-    public static String RESET = "\u001B[0m";
-    public static String CYAN = "\u001B[36m";
-    public static String RED = "\u001B[31m";
-    public static String YELLOW = "\u001B[33m";
-    public static String WHITE = "\u001B[37m";
-
     private Pair<String, String> creds = null;
-
-    DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM.dd HH:mm:ss");
-
 
     private static final Logger log = LoggerFactory.getLogger(ServerCommunicator.class);
 
@@ -56,12 +50,14 @@ public class ServerCommunicator {
             this.in = in;
 
             int onlineUsers = 0;
+            var loop = true;
 
             ClientState clientState = ClientState.FOR_CREDENTIALS;
 
-            while (true) {
+            while (loop) {
                 switch (clientState) {
                     case FOR_CREDENTIALS -> {
+                        console.printf(systemConsoleOut(onlineUsers, "Начало сессии!"));
                         creds = userInputHandler.promptUserCredentials();
                         clientState = ClientState.FOR_SIGN_IN;
                     }
@@ -72,8 +68,10 @@ public class ServerCommunicator {
                             clientState = ClientState.FOR_SIGN_UP;
                         } else {
                             if (signInResp.isSignInSuccess()) {
+                                console.printf(systemConsoleOut(onlineUsers, "Успешный вход!"));
                                 clientState = ClientState.LISTEN;
                             } else {
+                                console.printf(systemConsoleOut(onlineUsers, "Требуется регистрация!"));
                                 var logoutReq = new RequestBuilder(EventType.LOGOUT).withUsername(creds.key()).withPassword(creds.value());
                                 requestResponse(logoutReq.build());
                             }
@@ -83,8 +81,10 @@ public class ServerCommunicator {
                         var signUpRequest = RequestBuilder.signUpRequest().withUsername(creds.key()).withPassword(creds.value()).build();
                         var signUpResponse = requestResponse(signUpRequest);
                         if (signUpResponse.isSignUpSuccess()) {
+                            console.printf(systemConsoleOut(onlineUsers, "Успешная регистрация!"));
                             clientState = ClientState.FOR_SIGN_IN;
                         } else {
+                            console.printf(systemConsoleOut(onlineUsers, "Ошибка регистрации!"));
                             clientState = ClientState.FOR_CREDENTIALS;
                         }
                     }
@@ -93,7 +93,6 @@ public class ServerCommunicator {
                         checkAndStartOnlinePrompt(creds);
 
                         var response = parseResponse(waitForResponse());
-                        log.info("Received message: {}", response);
                         var messageFrom = response.getMessage().getFrom();
                         var messageData = response.getMessage().getData();
                         var messageDate = response.getMessage().getDate();
@@ -104,9 +103,6 @@ public class ServerCommunicator {
                                     if (messageData.startsWith("Online users: "))
                                         onlineUsers = Integer.parseInt(messageData.split(": ")[1]);
                                 } else {
-//                                    var date = LocalDateTime.parse(response.getMessage().getDate(), DATE_TIME_FORMATTER);
-//                                    var isToday = date.isEqual(LocalDateTime.now(ZoneId.systemDefault()));
-//                                    var currentDTParser = isToday ? DateTimeFormatter.ofPattern("HH:mm:ss") : dateTimeFormatter;
                                     var consoleOut = consoleOut(onlineUsers, messageFrom, messageDate, messageData, false);
 
                                     console.printf(consoleOut);
@@ -114,16 +110,14 @@ public class ServerCommunicator {
                             }
                             case ERROR -> {
                                 log.warn("Received error message: {}", response);
-//                                var date = LocalDateTime.parse(response.getMessage().getDate(), DATE_TIME_FORMATTER);
-//                                var isToday = date.isEqual(LocalDateTime.now(ZoneId.systemDefault()));
-//                                var currentDTParser = isToday ? DateTimeFormatter.ofPattern("HH:mm:ss") : dateTimeFormatter;
                                 var consoleOut = consoleOut(onlineUsers, messageFrom, messageDate, messageData, true);
 
                                 console.printf(consoleOut);
                             }
                             default -> {
+                                console.printf(systemConsoleOut(onlineUsers, "Конец сессии"));
                                 log.info("End of output");
-                                return;
+                                loop = false;
                             }
                         }
                     }
@@ -138,6 +132,9 @@ public class ServerCommunicator {
         } finally {
             if (onlinePrompt != null) {
                 onlinePrompt.close();
+            }
+            if (onlineActuator != null) {
+                onlineActuator.close();
             }
         }
     }
@@ -186,7 +183,9 @@ public class ServerCommunicator {
     }
 
     public String waitForResponse() throws IOException {
-        return in.readLine();
+        var received = in.readLine();
+        if (received != null) log.info("Received message: {}", received);
+        return received;
     }
 
     public Response parseResponse(String response) throws IOException {
@@ -194,10 +193,18 @@ public class ServerCommunicator {
     }
 
     private static String consoleOut(int onlineUsers, String from, String date, String data, boolean isError) {
+        var dateP = LocalDateTime.parse(date, fullDateTimeFormatter);
+        var isToday = dateP.isEqual(LocalDateTime.now(ZoneId.systemDefault()));
+        var currentDTParser = isToday ? dateTimeFormatter : fullDateTimeFormatter;
+
         return GREEN + "[ONLINE·" + onlineUsers + ']' + RESET +
                 CYAN + "[" + from + "]" + RESET + ':' +
-                YELLOW + '[' + date + ']' + RESET + ": " +
+                YELLOW + '[' + dateP.format(currentDTParser) + ']' + RESET + ": " +
                 (isError ? RED : WHITE) + data + RESET + "\n";
+    }
+
+    private static String systemConsoleOut(int onlineUsers, String text) {
+        return consoleOut(onlineUsers, "Application", LocalDateTime.now().format(fullDateTimeFormatter), text, false);
     }
 
 }
