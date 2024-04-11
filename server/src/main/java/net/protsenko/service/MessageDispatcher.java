@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,11 +62,12 @@ public class MessageDispatcher {
     }
 
     private void processEvent(OutputEvent event) throws JsonProcessingException {
-        log.info("Process output event: {}", event);
+        var eventId = UUID.randomUUID();
+        log.info("Process output event: {} {}", eventId, event);
         String username = event.getUsername();
         if (event.getResponse() != null) {
             String response = om.writeValueAsString(event.getResponse()) + "\n";
-
+            log.info("Process output event: {} {}", eventId, response);
             List<PrintWriter> outs = new ArrayList<>();
 
             if (username == null) {
@@ -77,7 +79,7 @@ public class MessageDispatcher {
                 }
             }
 
-            log.info("Consumers to push message: {}", outs.size());
+            log.info("Consumers to push message: {} {}", eventId, outs.size());
 
             for (PrintWriter out : outs) {
                 if (out != null && !out.checkError()) {

@@ -4,7 +4,6 @@ import net.protsenko.model.Message;
 import net.protsenko.model.User;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
 
@@ -86,12 +85,12 @@ public class DBQueryExecutor {
         });
     }
 
-    public void saveMessage(String from, String data) {
+    public void saveMessage(Message message) {
         executeUpdate("INSERT INTO history(sender, data, send_date) VALUES (?, ?, ?::timestamp)", stmt -> {
                     try {
-                        stmt.setString(1, from);
-                        stmt.setString(2, data);
-                        stmt.setString(3, LocalDateTime.now().toString());
+                        stmt.setString(1, message.getFrom());
+                        stmt.setString(2, message.getData());
+                        stmt.setString(3, message.getDate());
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
                     }

@@ -27,10 +27,9 @@ public class RequestBuilder {
     public static RequestBuilder signInRequest() {
         return new RequestBuilder(EventType.SIGN_IN);
     }
-    
-    public RequestBuilder withCredentials(String credentials) {
-        this.credentials = credentials;
-        return this;
+
+    public static RequestBuilder signUpRequest() {
+        return new RequestBuilder(EventType.SIGN_UP);
     }
     
     public RequestBuilder withUsername(String username) {
@@ -52,8 +51,4 @@ public class RequestBuilder {
         if (et != null) this.et = et;
         return this;
     }
-
-//    public String createRequest(EventType eventType, String credentials, String message) throws JsonProcessingException {
-//        return om.writeValueAsString(new Request(eventType, credentials, message));
-//    }
 }

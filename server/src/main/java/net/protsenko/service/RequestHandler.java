@@ -133,8 +133,9 @@ public class RequestHandler {
                         }
                         case ONLINE -> MD.sendEvent(onlineUsers(username));
                         case SEND -> {
-                            MD.sendEvent(OutputEvent.Ok(null, new Message(username, request.getMessage())));
-                            DBQE.saveMessage(username, request.getMessage());
+                            var message = new Message(username, request.getMessage());
+                            MD.sendEvent(OutputEvent.Ok(null, message));
+                            DBQE.saveMessage(message);
                         }
                         default -> MD.sendEvent(OutputEvent.Error(username, "Bad request"));
                     }
